@@ -12,6 +12,7 @@ export default function ChatPageWrapper() {
     </Suspense>
   );
 }
+<p style={{ color: '#888' }}>Now live with {displayName}</p>
 
 function ChatPage() {
   const searchParams = useSearchParams();
