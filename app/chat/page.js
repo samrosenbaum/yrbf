@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default function ChatPageWrapper() {
   return (
-    <Suspense fallback={<div>Loading Brad...</div>}>
+    <Suspense fallback={<div>Loading...</div>}>
       <ChatPage />
     </Suspense>
   );
@@ -15,6 +15,9 @@ export default function ChatPageWrapper() {
 
 function ChatPage() {
   const searchParams = useSearchParams();
+  const personality = searchParams.get('personality') || 'your AI boyfriend';
+  const displayName = personality.charAt(0).toUpperCase() + personality.slice(1);
+
   const [isPaidUser, setIsPaidUser] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -54,14 +57,17 @@ function ChatPage() {
 
       setMessages([...newMessages, { role: 'assistant', content: data.reply }]);
     } catch (err) {
-      console.error('Error talking to Brad:', err);
+      console.error(`Error talking to ${displayName}:`, err);
       setMessages([...newMessages, { role: 'assistant', content: 'Sorry, something went wrong!' }]);
     }
   };
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ fontSize: '2rem' }}>Chat with Brad 💬</h1>
+      <h1 style={{ fontSize: '2rem' }}>
+        Chat with {displayName} 💬
+      </h1>
+
       <div style={{
         border: '1px solid #ccc',
         borderRadius: '10px',
@@ -71,9 +77,12 @@ function ChatPage() {
         overflowY: 'auto'
       }}>
         {messages.map((msg, i) => (
-          <p key={i}><strong>{msg.role === 'user' ? 'You' : 'Brad'}:</strong> {msg.content}</p>
+          <p key={i}>
+            <strong>{msg.role === 'user' ? 'You' : displayName}:</strong> {msg.content}
+          </p>
         ))}
       </div>
+
       {limitReached ? (
         <div>
           <p>You've reached your free message limit.</p>
@@ -85,7 +94,7 @@ function ChatPage() {
             }}
             style={{ background: '#ff4081', color: '#fff', padding: '10px 20px', borderRadius: '5px', border: 'none' }}
           >
-            Unlock Unlimited Chat with Brad – just $3/week
+            Unlock Unlimited Chat with {displayName} – just $3/week
           </button>
         </div>
       ) : (
@@ -94,7 +103,7 @@ function ChatPage() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Say something to Brad..."
+            placeholder={`Say something to ${displayName}...`}
             style={{ padding: '10px', width: '70%' }}
           />
           <button onClick={handleSend} style={{ padding: '10px 20px', marginLeft: '10px' }}>
