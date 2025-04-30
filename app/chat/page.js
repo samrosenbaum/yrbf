@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { useState } from 'react';
+export const dynamic = 'force-dynamic';
 
 export default function ChatPage() {
   const searchParams = useSearchParams();  // NEW LINE
