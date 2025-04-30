@@ -1,25 +1,31 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { useState } from 'react';
 export const dynamic = 'force-dynamic';
 
-export default function ChatPage() {
-  const searchParams = useSearchParams();  // NEW LINE
-  const [isPaidUser, setIsPaidUser] = useState(false);  // NEW LINE
+export default function ChatPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading Brad...</div>}>
+      <ChatPage />
+    </Suspense>
+  );
+}
 
-  useEffect(() => {  // NEW BLOCK
+function ChatPage() {
+  const searchParams = useSearchParams();
+  const [isPaidUser, setIsPaidUser] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [limitReached, setLimitReached] = useState(false);
+
+  useEffect(() => {
     if (searchParams.get('success') === 'true') {
       setIsPaidUser(true);
       setLimitReached(false); // reset limit
     }
-  }, [searchParams]);  // NEW BLOCK
-
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [limitReached, setLimitReached] = useState(false);
+  }, [searchParams]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -28,7 +34,7 @@ export default function ChatPage() {
     setMessages(newMessages);
     setInput('');
 
-    if (newMessages.filter(msg => msg.role === 'user').length >= 5) {
+    if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 5) {
       setLimitReached(true);
       return;
     }
@@ -72,10 +78,14 @@ export default function ChatPage() {
         <div>
           <p>You've reached your free message limit.</p>
           <button
-            onClick={() => alert('Stripe integration coming next!')}
+            onClick={async () => {
+              const res = await fetch('/api/checkout', { method: 'POST' });
+              const data = await res.json();
+              window.location = data.url;
+            }}
             style={{ background: '#ff4081', color: '#fff', padding: '10px 20px', borderRadius: '5px', border: 'none' }}
           >
-            Unlock Unlimited Chat with Brad, just $3 a week
+            Unlock Unlimited Chat with Brad – just $3/week
           </button>
         </div>
       ) : (
