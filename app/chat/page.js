@@ -2,6 +2,10 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { Card } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +16,6 @@ export default function ChatPageWrapper() {
     </Suspense>
   );
 }
-<p style={{ color: '#888' }}>Now live with {displayName}</p>
 
 function ChatPage() {
   const searchParams = useSearchParams();
@@ -27,7 +30,7 @@ function ChatPage() {
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
       setIsPaidUser(true);
-      setLimitReached(false); // reset limit
+      setLimitReached(false);
     }
   }, [searchParams]);
 
@@ -58,59 +61,47 @@ function ChatPage() {
 
       setMessages([...newMessages, { role: 'assistant', content: data.reply }]);
     } catch (err) {
-      console.error(`Error talking to ${displayName}:`, err);
       setMessages([...newMessages, { role: 'assistant', content: 'Sorry, something went wrong!' }]);
     }
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ fontSize: '2rem' }}>
-        Chat with {displayName} 💬
-      </h1>
+    <div className="max-w-xl mx-auto p-6 space-y-4">
+      <h1 className="text-3xl font-bold">Chat with {displayName} 💬</h1>
 
-      <div style={{
-        border: '1px solid #ccc',
-        borderRadius: '10px',
-        padding: '20px',
-        margin: '20px 0',
-        height: '400px',
-        overflowY: 'auto'
-      }}>
+      <div className="space-y-4">
         {messages.map((msg, i) => (
-          <p key={i}>
-            <strong>{msg.role === 'user' ? 'You' : displayName}:</strong> {msg.content}
-          </p>
+          <Card key={i} className="p-4 flex items-start space-x-4">
+            <Avatar>
+              <AvatarFallback>
+                {msg.role === 'user' ? 'You' : displayName[0]}
+              </AvatarFallback>
+            </Avatar>
+            <p>{msg.content}</p>
+          </Card>
         ))}
       </div>
 
       {limitReached ? (
-        <div>
+        <div className="space-y-2">
           <p>You've reached your free message limit.</p>
-          <button
-            onClick={async () => {
-              const res = await fetch('/api/checkout', { method: 'POST' });
-              const data = await res.json();
-              window.location = data.url;
-            }}
-            style={{ background: '#ff4081', color: '#fff', padding: '10px 20px', borderRadius: '5px', border: 'none' }}
-          >
-            Unlock Unlimited Chat with {displayName} – just $3/week
-          </button>
+          <Button onClick={async () => {
+            const res = await fetch('/api/checkout', { method: 'POST' });
+            const data = await res.json();
+            window.location = data.url;
+          }}>
+            Unlock Unlimited Chat with {displayName} – $3/week
+          </Button>
         </div>
       ) : (
-        <>
-          <input
-            type="text"
+        <div className="flex space-x-2">
+          <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={`Say something to ${displayName}...`}
-            style={{ padding: '10px', width: '70%' }}
           />
-          <button onClick={handleSend} style={{ padding: '10px 20px', marginLeft: '10px' }}>
-            Send
-          </button>
-        </>
+          <Button onClick={handleSend}>Send</Button>
+        </div>
       )}
     </div>
   );
