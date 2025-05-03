@@ -17,20 +17,8 @@ export default function ChatPageWrapper() {
   );
 }
 
-const personalities = {
-  dimitri: {
-    name: "Dimitri",
-    avatar: "/avatars/dimitri.png"
-  },
-  nico: {
-    name: "Nico",
-    avatar: "/avatars/nico.png"
-  },
-  cole: {
-    name: "Cole",
-    avatar: "/avatars/cole.png"
-  }
-};
+import { personalities } from "@/lib/personalities";
+
 
 function ChatPage() {
   const searchParams = useSearchParams();
@@ -49,6 +37,13 @@ function ChatPage() {
     }
   }, [searchParams]);
 
+  // Add starter message if empty
+  useEffect(() => {
+    if (messages.length === 0) {
+      setMessages([{ role: 'assistant', content: personality.starter }]);
+    }
+  }, []);
+
   const handleSend = async () => {
     if (!input.trim()) return;
 
@@ -65,11 +60,12 @@ function ChatPage() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({
+          message: `${personalityProfiles[personalityKey]}\nUser: ${input}`
+        }),
       });
 
       const data = await res.json();
-
       setMessages([...newMessages, { role: 'assistant', content: data.reply || "Sorry, something went wrong." }]);
     } catch (err) {
       console.error(err);
@@ -78,22 +74,32 @@ function ChatPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
+    <div className={`min-h-screen ${personality.bg} ${personality.textColor} p-8`}>
       <h1 className="text-3xl font-bold mb-6 text-center">Chat with {personality.name} 💬</h1>
 
-      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 bg-neutral-900 border-neutral-800">
-        {messages.map((msg, i) => (
-          <div key={i} className="flex items-start space-x-4">
-            <Avatar>
-              <AvatarImage src={msg.role === 'user' ? undefined : personality.avatar} />
-              <AvatarFallback>{msg.role === 'user' ? 'You' : personality.name}</AvatarFallback>
+      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 border-neutral-800">
+        {messages.length === 0 ? (
+          <div className="text-center space-y-4 py-12">
+            <Avatar className="mx-auto w-20 h-20">
+              <AvatarImage src={personality.avatar} />
+              <AvatarFallback>{personality.name}</AvatarFallback>
             </Avatar>
-            <div>
-              <p className="font-semibold">{msg.role === 'user' ? 'You' : personality.name}</p>
-              <p>{msg.content}</p>
-            </div>
+            <p>Say hi to {personality.name} to start your conversation!</p>
           </div>
-        ))}
+        ) : (
+          messages.map((msg, i) => (
+            <div key={i} className="flex items-start space-x-4">
+              <Avatar>
+                <AvatarImage src={msg.role === 'user' ? undefined : personality.avatar} />
+                <AvatarFallback>{msg.role === 'user' ? 'You' : personality.name}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-semibold">{msg.role === 'user' ? 'You' : personality.name}</p>
+                <p>{msg.content}</p>
+              </div>
+            </div>
+          ))
+        )}
       </Card>
 
       {limitReached ? (

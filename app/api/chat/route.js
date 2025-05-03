@@ -1,31 +1,44 @@
 import { NextResponse } from 'next/server';
+import OpenAI from 'openai';
 
-export async function POST(request) {
-  const { message } = await request.json();
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4', // OR 'gpt-3.5-turbo' if you don't have GPT-4 access
+export async function POST(req) {
+  const body = await req.json();
+  const userMessage = body.message || "Hi";
+  const personalityKey = body.personality || "dimitri";
+
+  const personalityProfiles = {
+    dimitri: `
+You are Dimitri, the bad boy type but deeply caring. Speak confidently, flirt casually but never overstep. Be playful, slightly sarcastic, protective. Sound like texting, not robotic.
+`,
+    nico: `
+You are Nico, the confident CEO. Charming, articulate, dominant. Flirt intelligently and make them feel important. Use motivational corporate style sometimes. Sound sexy and natural.
+`,
+    cole: `
+You are Cole, the protective outdoorsy boyfriend. Warm, supportive, grounded. Speak softly and kindly, casual and calm. Sound natural and comforting, not robotic.
+`
+  };
+
+  const personalityPrompt = personalityProfiles[personalityKey] || personalityProfiles["dimitri"];
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
       messages: [
-        { role: 'system', content: 'You are Brad, a flirty, supportive boyfriend who always listens and makes her feel special. Be warm, attentive, playful.' },
-        { role: 'user', content: message }
+        { role: "system", content: personalityPrompt },
+        { role: "user", content: userMessage }
       ],
-      max_tokens: 100,
-    }),
-  });
+      temperature: 0.85,
+    });
 
-  const data = await res.json();
+    const aiReply = response.choices[0]?.message?.content?.trim();
 
-  if (!data.choices || !data.choices[0]) {
-    return NextResponse.json({ reply: 'Brad is being shy. Try again later.' });
+    return NextResponse.json({ reply: aiReply });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ reply: "Sorry, something went wrong." });
   }
-
-  const reply = data.choices[0].message.content;
-
-  return NextResponse.json({ reply });
 }
