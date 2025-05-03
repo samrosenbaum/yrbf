@@ -19,7 +19,6 @@ export default function ChatPageWrapper() {
 
 import { personalities } from "@/lib/personalities";
 
-
 function ChatPage() {
   const searchParams = useSearchParams();
   const personalityKey = searchParams.get('personality') || 'dimitri';
