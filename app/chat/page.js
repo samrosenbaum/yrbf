@@ -35,12 +35,12 @@ function ChatPage() {
     }
   }, [searchParams]);
 
-  // Add starter message if empty
+  // Add starter message on first load
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([{ role: 'assistant', content: personality.starter }]);
     }
-  }, [personality.starter, messages.length]);
+  }, [personality]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -59,8 +59,8 @@ function ChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: input,
-          personality: personalityKey,
+          message: `${personality.profile}\nUser: ${input}`,
+          personality: personalityKey
         }),
       });
 
@@ -76,16 +76,16 @@ function ChatPage() {
     <div className={`min-h-screen ${personality.bg} ${personality.textColor} p-8`}>
       <h1 className="text-3xl font-bold mb-6 text-center">Chat with {personality.name} 💬</h1>
 
-      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 border-neutral-700 bg-neutral-900 text-white">
+      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 border-neutral-800">
         {messages.map((msg, i) => (
-          <div key={i} className="flex items-start space-x-4 mb-4">
+          <div key={i} className="flex items-start space-x-4">
             <Avatar>
               <AvatarImage src={msg.role === 'user' ? undefined : personality.avatar} />
               <AvatarFallback>{msg.role === 'user' ? 'You' : personality.name}</AvatarFallback>
             </Avatar>
-            <div className="bg-neutral-800 p-3 rounded-lg max-w-xs">
-              <p className="font-semibold mb-1">{msg.role === 'user' ? 'You' : personality.name}</p>
-              <p className="whitespace-pre-wrap">{msg.content}</p>
+            <div>
+              <p className="font-semibold">{msg.role === 'user' ? 'You' : personality.name}</p>
+              <p>{msg.content}</p>
             </div>
           </div>
         ))}
@@ -114,7 +114,7 @@ function ChatPage() {
           />
           <Button onClick={handleSend}>Send</Button>
         </div>
-      )} 
+      )}
     </div>
   );
 }
