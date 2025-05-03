@@ -1,44 +1,39 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { OpenAI } from 'openai';
+import { personalities } from "@/lib/personalities";
 
+export const dynamic = 'force-dynamic';
+
+// Setup OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY, // Make sure this is set in Vercel env vars
 });
 
 export async function POST(req) {
   const body = await req.json();
-  const userMessage = body.message || "Hi";
-  const personalityKey = body.personality || "dimitri";
+  const userMessage = body.message;
+  const personalityKey = body.personality || 'dimitri';
+  const personality = personalities[personalityKey] || personalities['dimitri'];
 
-  const personalityProfiles = {
-    dimitri: `
-You are Dimitri, the bad boy type but deeply caring. Speak confidently, flirt casually but never overstep. Be playful, slightly sarcastic, protective. Sound like texting, not robotic.
-`,
-    nico: `
-You are Nico, the confident CEO. Charming, articulate, dominant. Flirt intelligently and make them feel important. Use motivational corporate style sometimes. Sound sexy and natural.
-`,
-    cole: `
-You are Cole, the protective outdoorsy boyfriend. Warm, supportive, grounded. Speak softly and kindly, casual and calm. Sound natural and comforting, not robotic.
-`
-  };
-
-  const personalityPrompt = personalityProfiles[personalityKey] || personalityProfiles["dimitri"];
+  if (!userMessage) {
+    return NextResponse.json({ reply: "No message provided." });
+  }
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // use gpt-4o (cheaper + fast) or gpt-4-turbo if needed
       messages: [
-        { role: "system", content: personalityPrompt },
+        { role: "system", content: personality.profile },
         { role: "user", content: userMessage }
       ],
-      temperature: 0.85,
+      temperature: 0.9,
     });
 
-    const aiReply = response.choices[0]?.message?.content?.trim();
+    const aiReply = response.choices[0]?.message?.content || "Hmm... I'm not sure what to say.";
 
     return NextResponse.json({ reply: aiReply });
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error("Error calling OpenAI:", error);
     return NextResponse.json({ reply: "Sorry, something went wrong." });
   }
 }
