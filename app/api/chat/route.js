@@ -12,6 +12,7 @@ export async function POST(req) {
   const body = await req.json();
   const messages = body.messages || [];
   const personalityKey = body.personality || 'dimitri';
+
   const personality = personalities[personalityKey] || personalities['dimitri'];
 
   try {
@@ -19,15 +20,16 @@ export async function POST(req) {
       model: "gpt-4o",
       messages: [
         { role: "system", content: personality.prompt },
-        ...messages.map(m => ({ role: m.role, content: m.content }))
+        ...messages.map(m => ({ role: m.role, content: m.content })),
       ],
-      temperature: 0.85,
+      temperature: 0.9,
     });
 
     const aiReply = response.choices[0]?.message?.content || "Hmm... I'm not sure what to say.";
+
     return NextResponse.json({ reply: aiReply });
   } catch (error) {
     console.error("Error calling OpenAI:", error);
-    return NextResponse.json({ reply: "Sorry babe can't talk rn" });
+    return NextResponse.json({ reply: "Sorry, something went wrong." });
   }
 }

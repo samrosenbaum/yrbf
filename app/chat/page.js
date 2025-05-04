@@ -35,9 +35,10 @@ function ChatPage() {
     }
   }, [searchParams]);
 
+  // Initial message
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([{ role: 'assistant', content: personality.starter }]);
+      setMessages([{ role: 'assistant', content: `Hey, I'm ${personality.name}. What’s on your mind?` }]);
     }
   }, []);
 
@@ -48,26 +49,29 @@ function ChatPage() {
     setMessages(newMessages);
     setInput('');
 
-    if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 10) {
+    if (!isPaidUser && newMessages.filter(m => m.role === 'user').length >= 5) {
       setLimitReached(true);
       return;
     }
+
+    // Log for analytics
+    await fetch('/api/log', {
+      method: 'POST',
+      body: JSON.stringify({ event: 'message_sent', personality: personalityKey }),
+    });
 
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: newMessages,
-          personality: personalityKey
-        }),
+        body: JSON.stringify({ messages: newMessages, personality: personalityKey }),
       });
 
       const data = await res.json();
       setMessages([...newMessages, { role: 'assistant', content: data.reply || "Sorry, something went wrong." }]);
     } catch (err) {
       console.error(err);
-      setMessages([...newMessages, { role: 'assistant', content: 'Sorry, something went wrong.' }]);
+      setMessages([...newMessages, { role: 'assistant', content: "Sorry, something went wrong." }]);
     }
   };
 
@@ -75,7 +79,7 @@ function ChatPage() {
     <div className="min-h-screen bg-black text-white p-8">
       <h1 className="text-3xl font-bold mb-6 text-center">Chat with {personality.name} 💬</h1>
 
-      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 bg-neutral-900 border-neutral-700 text-neutral-200">
+      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 border-neutral-800 bg-neutral-900">
         {messages.map((msg, i) => (
           <div key={i} className="flex items-start space-x-4">
             <Avatar>
@@ -92,14 +96,12 @@ function ChatPage() {
 
       {limitReached ? (
         <div className="text-center space-y-4">
-          <p>You’ve reached your free message limit.</p>
-          <Button
-            onClick={async () => {
-              const res = await fetch('/api/checkout', { method: 'POST' });
-              const data = await res.json();
-              window.location = data.url;
-            }}
-          >
+          <p>You've reached your free message limit.</p>
+          <Button onClick={async () => {
+            const res = await fetch('/api/checkout', { method: 'POST' });
+            const data = await res.json();
+            window.location = data.url;
+          }}>
             Unlock Unlimited Chat for $3/week
           </Button>
         </div>
