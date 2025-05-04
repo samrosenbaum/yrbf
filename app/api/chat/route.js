@@ -14,18 +14,21 @@ export async function POST(req) {
   const personalityKey = body.personality || 'dimitri';
   const personality = personalities[personalityKey] || personalities['dimitri'];
 
-  if (!pastMessages.length) {
-    return NextResponse.json({ reply: "No messages provided." });
-  }
+  const isStarter = body.starter;
 
   try {
     const formattedMessages = [
-      { role: "system", content: personality.prompt },
-      ...pastMessages.map(msg => ({
+      { role: "system", content: personality.prompt }
+    ];
+
+    if (!isStarter && pastMessages.length > 0) {
+      formattedMessages.push(...pastMessages.map(msg => ({
         role: msg.role,
         content: msg.content
-      })),
-    ];
+      })));
+    } else if (isStarter) {
+      formattedMessages.push({ role: "user", content: "Say hi to the user and start a flirty, fun conversation." });
+    }
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -38,6 +41,6 @@ export async function POST(req) {
     return NextResponse.json({ reply: aiReply });
   } catch (error) {
     console.error("Error calling OpenAI:", error);
-    return NextResponse.json({ reply: "Sorry, babe, can't talk right now." });
+    return NextResponse.json({ reply: "Sorry, something went wrong." });
   }
 }

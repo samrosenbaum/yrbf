@@ -35,10 +35,22 @@ function ChatPage() {
     }
   }, [searchParams]);
 
-  // Starter message
+  // 👇 Fetch the first message from AI if none exist
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([{ role: 'assistant', content: personality.starter || `Hey, I’m ${personality.name}. Let’s talk ;)` }]);
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [],
+          personality: personalityKey,
+          starter: true
+        }),
+      })
+        .then(res => res.json())
+        .then(data => {
+          setMessages([{ role: 'assistant', content: data.reply }]);
+        });
     }
   }, []);
 
