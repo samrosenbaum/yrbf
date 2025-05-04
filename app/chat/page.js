@@ -35,12 +35,12 @@ function ChatPage() {
     }
   }, [searchParams]);
 
-  // Add starter message on first load
+  // Starter message
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([{ role: 'assistant', content: personality.starter }]);
+      setMessages([{ role: 'assistant', content: personality.starter || `Hey, I’m ${personality.name}. Let’s talk ;)` }]);
     }
-  }, [personality]);
+  }, []);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -59,7 +59,7 @@ function ChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `${personality.profile}\nUser: ${input}`,
+          messages: newMessages,
           personality: personalityKey
         }),
       });
@@ -73,10 +73,10 @@ function ChatPage() {
   };
 
   return (
-    <div className={`min-h-screen ${personality.bg} ${personality.textColor} p-8`}>
+    <div className="min-h-screen bg-black text-white p-8">
       <h1 className="text-3xl font-bold mb-6 text-center">Chat with {personality.name} 💬</h1>
 
-      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 border-neutral-800">
+      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 bg-neutral-900 border-neutral-800">
         {messages.map((msg, i) => (
           <div key={i} className="flex items-start space-x-4">
             <Avatar>

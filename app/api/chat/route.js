@@ -4,28 +4,32 @@ import { personalities } from "@/lib/personalities";
 
 export const dynamic = 'force-dynamic';
 
-// Setup OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Make sure this is set in Vercel env vars
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(req) {
   const body = await req.json();
-  const userMessage = body.message;
+  const pastMessages = body.messages || [];
   const personalityKey = body.personality || 'dimitri';
   const personality = personalities[personalityKey] || personalities['dimitri'];
 
-  if (!userMessage) {
-    return NextResponse.json({ reply: "No message provided." });
+  if (!pastMessages.length) {
+    return NextResponse.json({ reply: "No messages provided." });
   }
 
   try {
+    const formattedMessages = [
+      { role: "system", content: personality.prompt },
+      ...pastMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })),
+    ];
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
-      messages: [
-        { role: "system", content: personality.prompt || "You are a helpful assistant." },
-        { role: "user", content: userMessage }
-      ],
+      messages: formattedMessages,
       temperature: 0.9,
     });
 
@@ -34,6 +38,6 @@ export async function POST(req) {
     return NextResponse.json({ reply: aiReply });
   } catch (error) {
     console.error("Error calling OpenAI:", error);
-    return NextResponse.json({ reply: "Sorry, something went wrong." });
+    return NextResponse.json({ reply: "Sorry, babe, can't talk right now." });
   }
 }
