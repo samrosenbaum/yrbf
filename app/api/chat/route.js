@@ -21,9 +21,9 @@ export async function POST(req) {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o", // use gpt-4o (cheaper + fast) or gpt-4-turbo if needed
+      model: "gpt-4o",
       messages: [
-        { role: "system", content: personality.profile },
+        { role: "system", content: personality.prompt || "You are a helpful assistant." },
         { role: "user", content: userMessage }
       ],
       temperature: 0.9,
