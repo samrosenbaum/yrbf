@@ -35,22 +35,9 @@ function ChatPage() {
     }
   }, [searchParams]);
 
-  // 👇 Fetch the first message from AI if none exist
   useEffect(() => {
     if (messages.length === 0) {
-      fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [],
-          personality: personalityKey,
-          starter: true
-        }),
-      })
-        .then(res => res.json())
-        .then(data => {
-          setMessages([{ role: 'assistant', content: data.reply }]);
-        });
+      setMessages([{ role: 'assistant', content: personality.starter }]);
     }
   }, []);
 
@@ -61,7 +48,7 @@ function ChatPage() {
     setMessages(newMessages);
     setInput('');
 
-    if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 5) {
+    if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 10) {
       setLimitReached(true);
       return;
     }
@@ -88,7 +75,7 @@ function ChatPage() {
     <div className="min-h-screen bg-black text-white p-8">
       <h1 className="text-3xl font-bold mb-6 text-center">Chat with {personality.name} 💬</h1>
 
-      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 bg-neutral-900 border-neutral-800">
+      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 bg-neutral-900 border-neutral-700 text-neutral-200">
         {messages.map((msg, i) => (
           <div key={i} className="flex items-start space-x-4">
             <Avatar>
