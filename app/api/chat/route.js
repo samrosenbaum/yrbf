@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 import { personalities } from "@/lib/personalities";
-import { getIronSession } from "iron-session/edge";
+import { getIronSession } from "iron-session";
 
 // Setup OpenAI client
 const openai = new OpenAI({
