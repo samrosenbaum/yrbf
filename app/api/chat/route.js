@@ -67,6 +67,6 @@ export async function POST(req) {
     return NextResponse.json({ reply: aiReply });
   } catch (error) {
     console.error("Error calling OpenAI:", error);
-    return NextResponse.json({ reply: "Sorry, something went wrong." });
+    return NextResponse.json({ reply: "Sorry, babe can't talk rn." });
   }
 }
