@@ -23,24 +23,14 @@ function ChatPage() {
   const personalityKey = searchParams.get('personality') || 'dimitri';
   const personality = personalities[personalityKey] || personalities['dimitri'];
 
-  const [isPaidUser, setIsPaidUser] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [limitReached, setLimitReached] = useState(false);
 
-  useEffect(() => {
-    if (searchParams.get('success') === 'true') {
-      setIsPaidUser(true);
-      setLimitReached(false);
-    }
-  }, [searchParams]);
-
-  // Show starter message
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([{ role: 'assistant', content: `Hey, I'm ${personality.name}. What’s on your mind right now?` }]);
+      setMessages([{ role: 'assistant', content: `Hey, I'm ${personality.name}. What’s on your mind?` }]);
     }
-  }, [personality.name, messages.length]);
+  }, [messages.length, personality.name]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -48,11 +38,6 @@ function ChatPage() {
     const newMessages = [...messages, { role: 'user', content: input }];
     setMessages(newMessages);
     setInput('');
-
-    if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 5) {
-      setLimitReached(true);
-      return;
-    }
 
     try {
       const res = await fetch('/api/chat', {
@@ -73,7 +58,7 @@ function ChatPage() {
   };
 
   return (
-    <div className={`min-h-screen ${personality?.bg ?? 'bg-neutral-900'} ${personality?.textColor ?? 'text-white'} p-8`}>
+    <div className={`min-h-screen ${personality.bg} ${personality.textColor} p-8`}>
       <h1 className="text-3xl font-bold mb-6 text-center">Chat with {personality.name} 💬</h1>
 
       <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 border-neutral-800">
@@ -91,30 +76,15 @@ function ChatPage() {
         ))}
       </Card>
 
-      {limitReached ? (
-        <div className="text-center space-y-4">
-          <p>You’ve reached your free message limit.</p>
-          <Button
-            onClick={async () => {
-              const res = await fetch('/api/checkout', { method: 'POST' });
-              const data = await res.json();
-              window.location = data.url;
-            }}
-          >
-            Unlock Unlimited Chat for $3/week
-          </Button>
-        </div>
-      ) : (
-        <div className="flex items-center space-x-4 max-w-2xl mx-auto">
-          <Input
-            placeholder={`Say something to ${personality.name}...`}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          />
-          <Button onClick={handleSend}>Send</Button>
-        </div>
-      )}
+      <div className="flex items-center space-x-4 max-w-2xl mx-auto">
+        <Input
+          placeholder={`Say something to ${personality.name}...`}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+        />
+        <Button onClick={handleSend}>Send</Button>
+      </div>
     </div>
   );
 }
