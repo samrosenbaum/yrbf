@@ -25,7 +25,9 @@ function ChatPage() {
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [error, setError] = useState('');
 
+  // Add starter message on load
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([{ role: 'assistant', content: `Hey, I'm ${personality.name}. What’s on your mind?` }]);
@@ -38,6 +40,7 @@ function ChatPage() {
     const newMessages = [...messages, { role: 'user', content: input }];
     setMessages(newMessages);
     setInput('');
+    setError('');
 
     try {
       const res = await fetch('/api/chat', {
@@ -49,14 +52,19 @@ function ChatPage() {
         }),
       });
 
+      const data = await res.json();
+
+      if (data.error) {
+        console.error("Backend returned error:", data.reply);
+        setError(data.reply);
+      }
+
+      setMessages([...newMessages, { role: 'assistant', content: data.reply }]);
     } catch (err) {
-      console.error("Chat error:", err);
-      return new Response(
-          JSON.stringify({ reply: "Sorry, something went wrong.", error: err.message, stack: err.stack }),
-          { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-  }
-  
+      console.error("Frontend fetch error:", err);
+      setMessages([...newMessages, { role: 'assistant', content: 'An unexpected error occurred while sending message.' }]);
+      setError("Fetch error: " + err.message);
+    }
   };
 
   return (
@@ -77,6 +85,12 @@ function ChatPage() {
           </div>
         ))}
       </Card>
+
+      {error && (
+        <div className="text-center text-red-500 mb-6">
+          <strong>Error:</strong> {error}
+        </div>
+      )}
 
       <div className="flex items-center space-x-4 max-w-2xl mx-auto">
         <Input
