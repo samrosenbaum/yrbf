@@ -49,12 +49,14 @@ function ChatPage() {
         }),
       });
 
-      const data = await res.json();
-      setMessages([...newMessages, { role: 'assistant', content: data.reply || "Sorry, something went wrong." }]);
     } catch (err) {
-      console.error(err);
-      setMessages([...newMessages, { role: 'assistant', content: 'Sorry, something went wrong.' }]);
-    }
+      console.error("Chat error:", err);
+      return new Response(
+          JSON.stringify({ reply: "Sorry, something went wrong.", error: err.message, stack: err.stack }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+  }
+  
   };
 
   return (
