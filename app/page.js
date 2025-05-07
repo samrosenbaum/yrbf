@@ -60,7 +60,7 @@ function ChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `${personalityProfiles[personalityKey]}\nUser: ${input}`
+          message: `${personality.promt}\nUser: ${input}`
         }),
       });
 
