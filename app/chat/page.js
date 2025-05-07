@@ -43,7 +43,7 @@ function ChatPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/chat', {
+      const res = await fetch('https://yrbf-lxh6.vercel.app/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
