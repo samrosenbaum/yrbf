@@ -32,7 +32,7 @@ export async function POST(req) {
     ];
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "chatgpt-4o-latest",
       messages: messages,
       temperature: 0.9,
     });
