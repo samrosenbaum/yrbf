@@ -46,6 +46,12 @@ function ChatPage() {
 
     const newMessages = [...messages, { role: 'user', content: input }];
     setMessages(newMessages);
+
+    // Track user message sent
+    if (typeof window !== 'undefined' && window.trackEvent) {
+      window.trackEvent('user_message_sent', personality.name);
+    }
+
     setInput('');
 
     if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 5) {
@@ -64,7 +70,14 @@ function ChatPage() {
       });
 
       const data = await res.json();
+
       setMessages([...newMessages, { role: 'assistant', content: data.reply || "Sorry, something went wrong." }]);
+
+      // Track assistant response
+      if (typeof window !== 'undefined' && window.trackEvent) {
+        window.trackEvent('assistant_response', personality.name);
+      }
+
     } catch (err) {
       console.error("Chat error details:", err);
       setMessages([...newMessages, { role: 'assistant', content: 'Sorry, something went wrong (client).' }]);
