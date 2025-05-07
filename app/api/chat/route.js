@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
-import { OpenAI } from 'openai';
+import { openai } from "@/lib/openai";
 import { personalities } from "@/lib/personalities";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { getSession } from "@/lib/session";
 
 export const dynamic = 'force-dynamic';
 
@@ -18,10 +15,17 @@ export async function POST(req) {
     return NextResponse.json({ reply: "No message provided." });
   }
 
+  const session = await getSession(req);
+  if (!session.messages) {
+    session.messages = [];
+  }
+
+  session.messages.push({ role: "user", content: userMessage });
+
   try {
     const messages = [
       { role: "system", content: personality.prompt },
-      { role: "user", content: userMessage }
+      ...session.messages,
     ];
 
     const response = await openai.chat.completions.create({
@@ -31,10 +35,17 @@ export async function POST(req) {
     });
 
     const aiReply = response.choices[0]?.message?.content || "Hmm... I'm not sure what to say.";
+    session.messages.push({ role: "assistant", content: aiReply });
+    await session.save();
 
     return NextResponse.json({ reply: aiReply });
   } catch (err) {
-    console.error("Chat error:", err);
-    return NextResponse.json({ reply: "Sorry, something went wrong." });
+    console.error("Chat error details:", {
+      message: err.message,
+      name: err.name,
+      stack: err.stack,
+      cause: err.cause
+    });
+    return NextResponse.json({ reply: "Sorry, something went wrong (server)." });
   }
 }

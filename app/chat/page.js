@@ -25,9 +25,16 @@ function ChatPage() {
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [error, setError] = useState('');
+  const [limitReached, setLimitReached] = useState(false);
+  const [isPaidUser, setIsPaidUser] = useState(false);
 
-  // Add starter message on load
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      setIsPaidUser(true);
+      setLimitReached(false);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([{ role: 'assistant', content: `Hey, I'm ${personality.name}. What’s on your mind?` }]);
@@ -40,30 +47,27 @@ function ChatPage() {
     const newMessages = [...messages, { role: 'user', content: input }];
     setMessages(newMessages);
     setInput('');
-    setError('');
+
+    if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 5) {
+      setLimitReached(true);
+      return;
+    }
 
     try {
-      const res = await fetch('https://yrbf-lxh6.vercel.app/api/chat', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           personality: personalityKey,
-          message: input
+          message: `${personality.prompt}\nUser: ${input}`
         }),
       });
 
       const data = await res.json();
-
-      if (data.error) {
-        console.error("Backend returned error:", data.reply);
-        setError(data.reply);
-      }
-
-      setMessages([...newMessages, { role: 'assistant', content: data.reply }]);
+      setMessages([...newMessages, { role: 'assistant', content: data.reply || "Sorry, something went wrong." }]);
     } catch (err) {
-      console.error("Frontend fetch error:", err);
-      setMessages([...newMessages, { role: 'assistant', content: 'An unexpected error occurred while sending message.' }]);
-      setError("Fetch error: " + err.message);
+      console.error("Chat error details:", err);
+      setMessages([...newMessages, { role: 'assistant', content: 'Sorry, something went wrong (client).' }]);
     }
   };
 
@@ -86,21 +90,30 @@ function ChatPage() {
         ))}
       </Card>
 
-      {error && (
-        <div className="text-center text-red-500 mb-6">
-          <strong>Error:</strong> {error}
+      {limitReached ? (
+        <div className="text-center space-y-4">
+          <p>You’ve reached your free message limit.</p>
+          <Button
+            onClick={async () => {
+              const res = await fetch('/api/checkout', { method: 'POST' });
+              const data = await res.json();
+              window.location = data.url;
+            }}
+          >
+            Unlock Unlimited Chat for $3/week
+          </Button>
+        </div>
+      ) : (
+        <div className="flex items-center space-x-4 max-w-2xl mx-auto">
+          <Input
+            placeholder={`Say something to ${personality.name}...`}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          />
+          <Button onClick={handleSend}>Send</Button>
         </div>
       )}
-
-      <div className="flex items-center space-x-4 max-w-2xl mx-auto">
-        <Input
-          placeholder={`Say something to ${personality.name}...`}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-        />
-        <Button onClick={handleSend}>Send</Button>
-      </div>
     </div>
   );
 }
