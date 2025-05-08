@@ -10,6 +10,15 @@ import { personalities } from "@/lib/personalities";
 
 export const dynamic = 'force-dynamic';
 
+function fireEvent(action, label = '') {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', action, {
+      event_category: 'Chat',
+      event_label: label,
+    });
+  }
+}
+
 export default function ChatPageWrapper() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -38,6 +47,7 @@ function ChatPage() {
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([{ role: 'assistant', content: `Hey, I'm ${personality.name}. What’s on your mind?` }]);
+      fireEvent('chat_started', personality.name);
     }
   }, [messages.length, personality.name]);
 
@@ -46,13 +56,9 @@ function ChatPage() {
 
     const newMessages = [...messages, { role: 'user', content: input }];
     setMessages(newMessages);
-
-    // Track user message sent
-    if (typeof window !== 'undefined' && window.trackEvent) {
-      window.trackEvent('user_message_sent', personality.name);
-    }
-
     setInput('');
+
+    fireEvent('message_sent', personality.name);
 
     if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 5) {
       setLimitReached(true);
@@ -65,19 +71,12 @@ function ChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           personality: personalityKey,
-          message: `${personality.prompt}\nUser: ${input}`
+          message: input
         }),
       });
 
       const data = await res.json();
-
       setMessages([...newMessages, { role: 'assistant', content: data.reply || "Sorry, something went wrong." }]);
-
-      // Track assistant response
-      if (typeof window !== 'undefined' && window.trackEvent) {
-        window.trackEvent('assistant_response', personality.name);
-      }
-
     } catch (err) {
       console.error("Chat error details:", err);
       setMessages([...newMessages, { role: 'assistant', content: 'Sorry, something went wrong (client).' }]);
