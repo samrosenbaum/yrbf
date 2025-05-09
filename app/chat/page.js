@@ -10,15 +10,6 @@ import { personalities } from "@/lib/personalities";
 
 export const dynamic = 'force-dynamic';
 
-function fireEvent(action, label = '') {
-  if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('event', action, {
-      event_category: 'Chat',
-      event_label: label,
-    });
-  }
-}
-
 export default function ChatPageWrapper() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -36,6 +27,7 @@ function ChatPage() {
   const [input, setInput] = useState('');
   const [limitReached, setLimitReached] = useState(false);
   const [isPaidUser, setIsPaidUser] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
@@ -47,7 +39,6 @@ function ChatPage() {
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([{ role: 'assistant', content: `Hey, I'm ${personality.name}. What’s on your mind?` }]);
-      fireEvent('chat_started', personality.name);
     }
   }, [messages.length, personality.name]);
 
@@ -57,11 +48,11 @@ function ChatPage() {
     const newMessages = [...messages, { role: 'user', content: input }];
     setMessages(newMessages);
     setInput('');
+    setIsTyping(true);
 
-    fireEvent('message_sent', personality.name);
-
-    if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 5) {
+    if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 30) {
       setLimitReached(true);
+      setIsTyping(false);
       return;
     }
 
@@ -71,7 +62,7 @@ function ChatPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           personality: personalityKey,
-          message: input
+          message: input,
         }),
       });
 
@@ -80,6 +71,8 @@ function ChatPage() {
     } catch (err) {
       console.error("Chat error details:", err);
       setMessages([...newMessages, { role: 'assistant', content: 'Sorry, something went wrong (client).' }]);
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -100,6 +93,18 @@ function ChatPage() {
             </div>
           </div>
         ))}
+        {isTyping && (
+          <div className="flex items-start space-x-4 animate-pulse">
+            <Avatar>
+              <AvatarImage src={personality.avatar} />
+              <AvatarFallback>{personality.name}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold">{personality.name}</p>
+              <p className="typing">...</p>
+            </div>
+          </div>
+        )}
       </Card>
 
       {limitReached ? (

@@ -120,3 +120,15 @@
     @apply bg-background text-foreground;
   }
 }
+.typing {
+  font-size: 1rem;
+  letter-spacing: 2px;
+  font-weight: 500;
+  animation: blink 1.4s infinite steps(1, start);
+}
+
+@keyframes blink {
+  0%   { opacity: 0.2; }
+  20%  { opacity: 1; }
+  100% { opacity: 0.2; }
+}
