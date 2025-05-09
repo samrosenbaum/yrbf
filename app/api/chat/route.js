@@ -3,6 +3,7 @@ import { openai } from "@/lib/openai";
 import { personalities } from "@/lib/personalities";
 import { getSession } from "@/lib/session";
 import { kv } from "@/lib/kv";
+import { getDynamicUpdate } from "@/lib/getDynamicUpdate"; // ✅ Add this
 
 export const dynamic = 'force-dynamic';
 
@@ -26,8 +27,12 @@ export async function POST(req) {
   session.messages.push({ role: "user", content: userMessage });
 
   try {
+    // ✅ Insert dynamic content into the system message
+    const update = await getDynamicUpdate(personalityKey);
+    const systemMessage = `${personality.prompt}\n\n${update || ''}`;
+
     const messages = [
-      { role: "system", content: personality.prompt },
+      { role: "system", content: systemMessage },
       ...session.messages,
     ];
 
