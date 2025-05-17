@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ function ChatPage() {
   const [limitReached, setLimitReached] = useState(false);
   const [isPaidUser, setIsPaidUser] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
     if (searchParams.get('success') === 'true') {
@@ -41,6 +42,10 @@ function ChatPage() {
       setMessages([{ role: 'assistant', content: `Hey, I'm ${personality.name}. What’s on your mind?` }]);
     }
   }, [messages.length, personality.name]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -78,7 +83,25 @@ function ChatPage() {
 
   return (
     <div className={`min-h-screen ${personality.bg} ${personality.textColor} p-8`}>
-      <h1 className="text-3xl font-bold mb-6 text-center">Chat with {personality.name} 💬</h1>
+      <h1 className="text-3xl font-bold text-center mb-1">Chat with {personality.name} 💬</h1>
+      <p className="text-center text-sm mb-6 italic text-gray-300">{personality.tagline}</p>
+
+      <div className="text-center mb-4">
+        <label htmlFor="personaSelect" className="mr-2">Choose your boyfriend:</label>
+        <select
+          id="personaSelect"
+          value={personalityKey}
+          onChange={(e) => {
+            const newPersona = e.target.value;
+            window.location.href = `/chat?personality=${newPersona}`;
+          }}
+          className="border border-gray-300 rounded px-2 py-1 text-black"
+        >
+          {Object.entries(personalities).map(([key, p]) => (
+            <option key={key} value={key}>{p.name}</option>
+          ))}
+        </select>
+      </div>
 
       <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 border-neutral-800">
         {messages.map((msg, i) => (
@@ -105,6 +128,7 @@ function ChatPage() {
             </div>
           </div>
         )}
+        <div ref={chatEndRef} />
       </Card>
 
       {limitReached ? (
