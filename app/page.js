@@ -1,3 +1,13 @@
+import { redirect } from 'next/navigation';
+
+export default function Home() {
+  redirect('/chat?personality=dimitri');
+}
+
+/*
+👇 ORIGINAL HOMEPAGE CHAT UI PRESERVED BELOW
+You can re-enable this later if you want to turn / into a landing page or alternate chat flow.
+
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
@@ -36,7 +46,6 @@ function ChatPage() {
     }
   }, [searchParams]);
 
-  // Add starter message if empty
   useEffect(() => {
     if (messages.length === 0) {
       setMessages([{ role: 'assistant', content: personality.starter }]);
@@ -128,3 +137,4 @@ function ChatPage() {
     </div>
   );
 }
+*/
