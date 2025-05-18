@@ -30,12 +30,18 @@ function ChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
 
-  useEffect(() => {
-    if (searchParams.get('success') === 'true') {
+useEffect(() => {
+  if (searchParams.get('success') === 'true') {
+    localStorage.setItem('isPaidUser', 'true');
+    setIsPaidUser(true);
+    setLimitReached(false);
+  } else {
+    const paid = localStorage.getItem('isPaidUser');
+    if (paid === 'true') {
       setIsPaidUser(true);
-      setLimitReached(false);
     }
-  }, [searchParams]);
+  }
+}, [searchParams]);
 
   useEffect(() => {
     if (messages.length === 0) {
