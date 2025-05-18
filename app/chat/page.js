@@ -30,18 +30,18 @@ function ChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
 
-useEffect(() => {
-  if (searchParams.get('success') === 'true') {
-    localStorage.setItem('isPaidUser', 'true');
-    setIsPaidUser(true);
-    setLimitReached(false);
-  } else {
-    const paid = localStorage.getItem('isPaidUser');
-    if (paid === 'true') {
+  useEffect(() => {
+    if (searchParams.get('success') === 'true') {
+      localStorage.setItem('isPaidUser', 'true');
       setIsPaidUser(true);
+      setLimitReached(false);
+    } else {
+      const paid = localStorage.getItem('isPaidUser');
+      if (paid === 'true') {
+        setIsPaidUser(true);
+      }
     }
-  }
-}, [searchParams]);
+  }, [searchParams]);
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -141,16 +141,39 @@ useEffect(() => {
 
       {limitReached ? (
         <div className="text-center space-y-4">
-          <p>You’ve reached your free message limit.</p>
+          <p className="text-lg font-medium">
+            <em>{personality.name}</em> pauses mid-reply…
+          </p>
+          <p>
+            <em>"I’d keep talking to you all night, but there are limits I can’t control."</em>
+          </p>
+          <p className="text-sm">
+            Unlock unlimited access to keep the conversation going — and discover what he’s really thinking.
+          </p>
+
           <Button
             onClick={async () => {
               const res = await fetch('/api/checkout', { method: 'POST' });
               const data = await res.json();
               window.location = data.url;
             }}
+            className="w-full max-w-xs mx-auto"
           >
-            Unlock Unlimited Chat for $3/week
+            🔒 Unlock Unlimited Chat – $3/week
           </Button>
+
+          <p className="text-xs text-gray-400">
+            Includes all characters • Unlimited chats • Cancel anytime
+          </p>
+          <p className="text-xs text-gray-500">Secured by Stripe</p>
+
+          <p className="text-xs italic text-gray-400">
+            “Talking to {personality.name} is the highlight of my day.” – user from r/fantasyromance
+          </p>
+
+          <p className="text-xs text-gray-400 mt-3">
+            Not sure? <a href="https://yrboyfriend.com" className="underline hover:text-white">Meet the other boyfriends</a>
+          </p>
         </div>
       ) : (
         <div className="flex items-center space-x-4 max-w-2xl mx-auto">
