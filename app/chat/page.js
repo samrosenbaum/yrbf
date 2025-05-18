@@ -39,9 +39,11 @@ function ChatPage() {
 
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([{ role: 'assistant', content: `Hey, I'm ${personality.name}. What’s on your mind?` }]);
+      const starters = personality.starters || [`Hey, I'm ${personality.name}. What’s on your mind?`];
+      const starter = starters[Math.floor(Math.random() * starters.length)];
+      setMessages([{ role: 'assistant', content: starter }]);
     }
-  }, [messages.length, personality.name]);
+  }, [messages.length, personality]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
