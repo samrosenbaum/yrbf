@@ -31,6 +31,8 @@ function ChatPage() {
   const [limitReached, setLimitReached] = useState(false);
   const [isPaidUser, setIsPaidUser] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [askedName, setAskedName] = useState(false);
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -43,6 +45,11 @@ function ChatPage() {
       if (paid === 'true') {
         setIsPaidUser(true);
       }
+    }
+
+    const storedName = localStorage.getItem('userName');
+    if (storedName) {
+      setUserName(storedName);
     }
   }, [searchParams]);
 
@@ -66,6 +73,32 @@ function ChatPage() {
     setInput('');
     setIsTyping(true);
 
+    const userMessageCount = newMessages.filter(m => m.role === 'user').length;
+
+    // Ask for name after second user message
+    if (!userName && userMessageCount === 2 && !askedName) {
+      setMessages([
+        ...newMessages,
+        { role: 'assistant', content: `I’ve been meaning to ask… what should I call you?` }
+      ]);
+      setAskedName(true);
+      setIsTyping(false);
+      return;
+    }
+
+    // Save the name if just asked
+    if (!userName && askedName && userMessageCount === 3) {
+      const name = input.trim();
+      localStorage.setItem('userName', name);
+      setUserName(name);
+      setMessages([
+        ...newMessages,
+        { role: 'assistant', content: `Got it. It suits you, ${name}.` }
+      ]);
+      setIsTyping(false);
+      return;
+    }
+
     if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 30) {
       setLimitReached(true);
       setIsTyping(false);
@@ -83,7 +116,11 @@ function ChatPage() {
       });
 
       const data = await res.json();
-      setMessages([...newMessages, { role: 'assistant', content: data.reply || "Sorry, something went wrong." }]);
+      const reply = userName
+        ? data.reply.replaceAll('{name}', userName)
+        : data.reply;
+
+      setMessages([...newMessages, { role: 'assistant', content: reply || "Sorry, something went wrong." }]);
     } catch (err) {
       console.error("Chat error details:", err);
       setMessages([...newMessages, { role: 'assistant', content: 'Sorry, something went wrong (client).' }]);
@@ -91,6 +128,7 @@ function ChatPage() {
       setIsTyping(false);
     }
   };
+
 return (
   <div className={`min-h-screen ${personality.bg} ${personality.textColor} p-8`}>
 
