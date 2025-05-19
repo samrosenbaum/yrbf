@@ -10,6 +10,9 @@ import { personalities } from "@/lib/personalities";
 
 export const dynamic = 'force-dynamic';
 
+// Utility function to capitalize first letter
+const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
 export default function ChatPageWrapper() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -45,7 +48,7 @@ function ChatPage() {
 
   useEffect(() => {
     if (messages.length === 0) {
-      const starters = personality.starters || [`Hey, I'm ${personality.name}. What’s on your mind?`];
+      const starters = personality.starters || [`Hey, I'm ${capitalize(personality.name)}. What’s on your mind?`];
       const starter = starters[Math.floor(Math.random() * starters.length)];
       setMessages([{ role: 'assistant', content: starter }]);
     }
@@ -91,7 +94,7 @@ function ChatPage() {
 
   return (
     <div className={`min-h-screen ${personality.bg} ${personality.textColor} p-8`}>
-      <h1 className="text-3xl font-bold text-center mb-1">Chat with {personality.name} 💬</h1>
+      <h1 className="text-3xl font-bold text-center mb-1">Chat with {capitalize(personality.name)} 💬</h1>
       <p className="text-center text-sm mb-6 italic text-gray-300">{personality.tagline}</p>
 
       <div className="text-center mb-4">
@@ -116,10 +119,10 @@ function ChatPage() {
           <div key={i} className="flex items-start space-x-4">
             <Avatar>
               <AvatarImage src={msg.role === 'user' ? undefined : personality.avatar} />
-              <AvatarFallback>{msg.role === 'user' ? 'You' : personality.name}</AvatarFallback>
+              <AvatarFallback>{msg.role === 'user' ? 'You' : capitalize(personality.name)}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold">{msg.role === 'user' ? 'You' : personality.name}</p>
+              <p className="font-semibold">{msg.role === 'user' ? 'You' : capitalize(personality.name)}</p>
               <p>{msg.content}</p>
             </div>
           </div>
@@ -128,10 +131,10 @@ function ChatPage() {
           <div className="flex items-start space-x-4 animate-pulse">
             <Avatar>
               <AvatarImage src={personality.avatar} />
-              <AvatarFallback>{personality.name}</AvatarFallback>
+              <AvatarFallback>{capitalize(personality.name)}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold">{personality.name}</p>
+              <p className="font-semibold">{capitalize(personality.name)}</p>
               <p className="typing">...</p>
             </div>
           </div>
@@ -142,7 +145,7 @@ function ChatPage() {
       {limitReached ? (
         <div className="text-center space-y-4">
           <p className="text-lg font-medium">
-            <em>{personality.name}</em> pauses mid-reply…
+            <em>{capitalize(personality.name)}</em> pauses mid-reply…
           </p>
           <p>
             <em>"I’d keep talking to you all night, but there are limits I can’t control."</em>
@@ -168,7 +171,7 @@ function ChatPage() {
           <p className="text-xs text-gray-500">Secured by Stripe</p>
 
           <p className="text-xs italic text-gray-400">
-            “Talking to {personality.name} is the highlight of my day.” – user from r/fantasyromance
+            “Talking to {capitalize(personality.name)} is the highlight of my day.” – user from r/fantasyromance
           </p>
 
           <p className="text-xs text-gray-400 mt-3">
@@ -178,7 +181,7 @@ function ChatPage() {
       ) : (
         <div className="flex items-center space-x-4 max-w-2xl mx-auto">
           <Input
-            placeholder={`Say something to ${personality.name}...`}
+            placeholder={`Say something to ${capitalize(personality.name)}...`}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
