@@ -1,19 +1,21 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
-import Head from 'next/head'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
   title: 'Your AI Boyfriend',
   description: 'Talk with your AI boyfriend anytime ❤️',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <Head>
-        {/* Google Analytics */}
+      <head>
+        <link rel="icon" href="/favicon.ico" />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-14BGC467G0"></script>
         <script
           dangerouslySetInnerHTML={{
@@ -33,8 +35,10 @@ export default function RootLayout({ children }) {
             `,
           }}
         />
-      </Head>
-      <body className={inter.className}>{children}</body>
+      </head>
+      <body className={inter.className}>
+        {children}
+      </body>
     </html>
   )
 }
