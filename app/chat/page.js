@@ -91,10 +91,22 @@ function ChatPage() {
       setIsTyping(false);
     }
   };
+return (
+  <div className={`min-h-screen ${personality.bg} ${personality.textColor} p-8`}>
 
-  return (
-    <div className={`min-h-screen ${personality.bg} ${personality.textColor} p-8`}>
-      <h1 className="text-3xl font-bold text-center mb-1">Chat with {capitalize(personality.name)} 💬</h1>
+    {/* Logo & link to homepage */}
+    <div className="mb-6 flex justify-start items-center space-x-3">
+      <a href="https://yrboyfriend.com" className="flex items-center space-x-3 hover:underline">
+        <img src="/logo-nav.png" alt="YRBF logo" className="w-8 h-8 rounded-md shadow" />
+        <span className="text-white text-base font-medium">← Meet the Others</span>
+      </a>
+    </div>
+
+    <h1 className="text-3xl font-bold text-center mb-1">
+      Chat with {capitalize(personality.name)} 💬
+    </h1>
+
+
       <p className="text-center text-sm mb-6 italic text-gray-300">{personality.tagline}</p>
 
       <div className="text-center mb-4">
