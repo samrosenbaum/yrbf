@@ -101,6 +101,13 @@ return (
         <span className="text-white text-base font-medium">← Meet the Others</span>
       </a>
     </div>
+<div className="flex justify-center mb-4">
+  <img
+    src={personality.avatar}
+    alt={personality.name}
+    className="w-20 h-20 rounded-full shadow-lg border-2 border-white"
+  />
+</div>
 
     <h1 className="text-3xl font-bold text-center mb-1">
       Chat with {capitalize(personality.name)} 💬
