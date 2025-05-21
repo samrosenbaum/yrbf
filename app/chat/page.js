@@ -75,11 +75,32 @@ function ChatPage() {
 
     const userMessageCount = newMessages.filter(m => m.role === 'user').length;
 
+    // Character-specific prompts
+    const askNamePrompts = {
+      dimitri: "Alright, spill it. What's the name I should be using for you?",
+      nico: "We've been chatting for a bit, and I realize I don't yet know your name. What do you prefer to be called?",
+      cole: "Feeling like we know each other a bit now. What name do you go by?",
+      cassian: "I find myself at a disadvantage. You know my name, but I do not know yours. How should I address you?",
+      thorne: "After all this time, a name would be a welcome courtesy. By what title are you known?"
+    };
+
+    const confirmNameMessages = {
+      dimitri: (name) => `Nice to put a name to the mystery, ${name}. I like it.`,
+      nico: (name) => `A pleasure to formally know you, ${name}. It has a nice ring to it.`,
+      cole: (name) => `Good to know, ${name}. Makes this feel even more right.`,
+      cassian: (name) => `${name}. Very well. I shall endeavor to use it correctly.`,
+      thorne: (name) => `${name}. A fitting name for someone of your... intrigue.`
+    };
+
+    const defaultAskNamePrompt = "I’ve been meaning to ask… what should I call you?";
+    const defaultConfirmNameMessage = (name) => `Got it. It suits you, ${name}.`;
+
     // Ask for name after second user message
     if (!userName && userMessageCount === 2 && !askedName) {
+      const askPrompt = askNamePrompts[personalityKey] || defaultAskNamePrompt;
       setMessages([
         ...newMessages,
-        { role: 'assistant', content: `I’ve been meaning to ask… what should I call you?` }
+        { role: 'assistant', content: askPrompt }
       ]);
       setAskedName(true);
       setIsTyping(false);
@@ -91,9 +112,10 @@ function ChatPage() {
       const name = input.trim();
       localStorage.setItem('userName', name);
       setUserName(name);
+      const confirmMessage = (confirmNameMessages[personalityKey] || defaultConfirmNameMessage)(name);
       setMessages([
         ...newMessages,
-        { role: 'assistant', content: `Got it. It suits you, ${name}.` }
+        { role: 'assistant', content: confirmMessage }
       ]);
       setIsTyping(false);
       return;
@@ -136,70 +158,104 @@ return (
     <div className="mb-6 flex justify-start items-center space-x-3">
       <a href="https://yrboyfriend.com" className="flex items-center space-x-3 hover:underline">
         <img src="/logo-nav.png" alt="YRBF logo" className="w-8 h-8 rounded-md shadow" />
-        <span className="text-white text-base font-medium">← Meet the Others</span>
+        <span className="text-white text-base font-medium">← Back to Homepage</span>
       </a>
     </div>
-<div className="flex justify-center mb-4">
-  <img
-    src={personality.avatar}
-    alt={personality.name}
-    className="w-20 h-20 rounded-full shadow-lg border-2 border-white"
-  />
-</div>
 
-    <h1 className="text-3xl font-bold text-center mb-1">
+    {/* New Character Selection UI - Moved Up */}
+    <div className="mb-8">
+      <h2 className="text-lg font-semibold text-center mb-3 text-white/80">Switch Boyfriend</h2>
+      <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+        {Object.entries(personalities).map(([key, p]) => {
+          const tagline = p.tagline || p.prompt.split('.')[0] + '.';
+          return (
+            <div
+              key={key}
+              onClick={() => window.location.href = `/chat?personality=${key}`}
+              className={`
+                w-32 sm:w-36 cursor-pointer rounded-xl p-2 sm:p-3 text-center transition-all duration-200 ease-in-out
+                hover:shadow-2xl hover:scale-105 group
+                ${personalityKey === key 
+                  ? 'ring-2 ring-offset-2 ring-offset-transparent ring-white shadow-xl scale-105 bg-white/25' 
+                  : `bg-white/10 hover:bg-white/20 ${p.bg ? '' : 'border border-white/20'}`
+                }
+                ${p.textColor || 'text-white'}
+              `}
+            >
+              <Avatar className="mx-auto mb-1 sm:mb-2 w-12 h-12 sm:w-14 sm:h-14 border-2 border-white/30 group-hover:border-white/60 transition-colors">
+                <AvatarImage src={p.avatar} alt={capitalize(p.name)} />
+                <AvatarFallback>{capitalize(p.name).charAt(0)}</AvatarFallback>
+              </Avatar>
+              <h3 className="font-semibold text-xs sm:text-sm">{capitalize(p.name)}</h3>
+              <p className="text-xs opacity-70 group-hover:opacity-90 mt-0.5 px-1" style={{ minHeight: '2.5em', fontSize: '0.7rem', lineHeight: '1.2' }}>
+                {tagline.length > 50 ? tagline.substring(0, 47) + "..." : tagline}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+
+    {/* Active Character Display */}
+    <div className="flex justify-center mb-3">
+      <Avatar className="w-24 h-24 sm:w-28 sm:h-28 rounded-full shadow-2xl border-4 border-white/50">
+        <AvatarImage src={personality.avatar} alt={personality.name} />
+        <AvatarFallback>{capitalize(personality.name).charAt(0)}</AvatarFallback>
+      </Avatar>
+    </div>
+
+    <h1 className="text-3xl sm:text-4xl font-bold text-center mb-1">
       Chat with {capitalize(personality.name)} 💬
     </h1>
 
+    <p className="text-center text-sm sm:text-base mb-6 italic text-white/80">{personality.tagline || personality.prompt.split('.')[0] + '.'}</p>
 
-      <p className="text-center text-sm mb-6 italic text-gray-300">{personality.tagline}</p>
-
-      <div className="text-center mb-4">
-        <label htmlFor="personaSelect" className="mr-2">Choose your boyfriend:</label>
-        <select
-          id="personaSelect"
-          value={personalityKey}
-          onChange={(e) => {
-            const newPersona = e.target.value;
-            window.location.href = `/chat?personality=${newPersona}`;
-          }}
-          className="border border-gray-300 rounded px-2 py-1 text-black"
-        >
-          {Object.entries(personalities).map(([key, p]) => (
-            <option key={key} value={key}>{p.name}</option>
-          ))}
-        </select>
-      </div>
-
-      <Card className="p-6 mb-6 max-w-2xl mx-auto space-y-4 border-neutral-800">
-        {messages.map((msg, i) => (
-          <div key={i} className="flex items-start space-x-4">
-            <Avatar>
-              <AvatarImage src={msg.role === 'user' ? undefined : personality.avatar} />
-              <AvatarFallback>{msg.role === 'user' ? 'You' : capitalize(personality.name)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-semibold">{msg.role === 'user' ? 'You' : capitalize(personality.name)}</p>
-              <p>{msg.content}</p>
-            </div>
-          </div>
-        ))}
-        {isTyping && (
-          <div className="flex items-start space-x-4 animate-pulse">
-            <Avatar>
+    {/* Chat Messages Area */}
+    <Card className={`p-4 sm:p-6 mb-6 max-w-2xl mx-auto space-y-4 ${personality.bg ? 'bg-opacity-50' : 'bg-neutral-800/70'} border-white/20 backdrop-blur-sm`}>
+      {messages.map((msg, i) => (
+        <div key={i} className={`flex items-end space-x-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          {msg.role === 'assistant' && (
+            <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
               <AvatarImage src={personality.avatar} />
-              <AvatarFallback>{capitalize(personality.name)}</AvatarFallback>
+              <AvatarFallback>{capitalize(personality.name).charAt(0)}</AvatarFallback>
             </Avatar>
-            <div>
-              <p className="font-semibold">{capitalize(personality.name)}</p>
-              <p className="typing">...</p>
-            </div>
+          )}
+          <div 
+            className={`
+              max-w-[70%] sm:max-w-[75%] p-2 sm:p-3 rounded-xl shadow
+              ${msg.role === 'user' 
+                ? 'bg-blue-500 text-white rounded-br-none' // User message bubble
+                : `${personality.textColor === 'text-black' ? 'bg-gray-200 text-black' : 'bg-white/30 text-white'} rounded-bl-none` // Assistant message bubble
+              }
+            `}
+          >
+            <p className="font-semibold text-xs sm:text-sm mb-0.5">{msg.role === 'user' ? userName || 'You' : capitalize(personality.name)}</p>
+            <p className="text-sm sm:text-base whitespace-pre-wrap">{msg.content}</p>
           </div>
-        )}
-        <div ref={chatEndRef} />
-      </Card>
+          {msg.role === 'user' && (
+            <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
+               {/* Using a generic user avatar or the first letter of userName */}
+              <AvatarFallback>{userName ? userName.charAt(0).toUpperCase() : 'U'}</AvatarFallback>
+            </Avatar>
+          )}
+        </div>
+      ))}
+      {isTyping && (
+        <div className="flex items-end space-x-2 justify-start">
+          <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
+            <AvatarImage src={personality.avatar} />
+            <AvatarFallback>{capitalize(personality.name).charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className={`max-w-[70%] p-3 rounded-xl shadow ${personality.textColor === 'text-black' ? 'bg-gray-200 text-black' : 'bg-white/30 text-white'} rounded-bl-none`}>
+            <p className="font-semibold text-sm mb-0.5">{capitalize(personality.name)}</p>
+            <p className="typing text-base">...</p> {/* Ensure typing text is visible */}
+          </div>
+        </div>
+      )}
+      <div ref={chatEndRef} />
+    </Card>
 
-      {limitReached ? (
+    {limitReached ? (
         <div className="text-center space-y-4">
           <p className="text-lg font-medium">
             <em>{capitalize(personality.name)}</em> pauses mid-reply…
