@@ -29,7 +29,9 @@ export async function POST(req) {
   try {
     // ✅ Insert dynamic content into the system message
     const update = await getDynamicUpdate(personalityKey);
-    const systemMessage = `${personality.prompt}\n\n${update || ''}`;
+const basePrompt = personality.systemPrompt || personality.prompt || '';
+const systemMessage = `${basePrompt}\n\n${update || ''}`;
+
 
     const messages = [
       { role: "system", content: systemMessage },

@@ -221,7 +221,7 @@ return (
       Chat with {capitalize(personality.name)} 💬
     </h1>
 
-    <p className="text-center text-sm sm:text-base mb-6 italic text-white/80">{personality.tagline || personality.prompt.split('.')[0] + '.'}</p>
+    <p className="text-center text-sm sm:text-base mb-6 italic text-white/80">{personality.tagline || personality.systemPrompt.split('.')[0] + '.'}</p>
 
     {/* Chat Messages Area */}
     <Card className={`p-4 sm:p-6 mb-6 max-w-2xl mx-auto space-y-4 ${personality.bg ? 'bg-opacity-50' : 'bg-neutral-800/70'} border-white/20 backdrop-blur-sm`}>
