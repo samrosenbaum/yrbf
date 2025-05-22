@@ -21,6 +21,19 @@ export default function ChatPageWrapper() {
   );
 }
 
+function extractName(input) {
+  const lowered = input.toLowerCase().trim();
+  if (lowered.startsWith("my name is")) return input.slice(11).trim();
+  if (lowered.startsWith("i'm")) return input.slice(4).trim();
+  if (lowered.startsWith("i am")) return input.slice(5).trim();
+  return input.trim();
+}
+
+function formatName(name) {
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+}
+
+
 function ChatPage() {
   const searchParams = useSearchParams();
   const personalityKey = searchParams.get('personality') || 'dimitri';
@@ -107,19 +120,19 @@ function ChatPage() {
       return;
     }
 
-    // Save the name if just asked
-    if (!userName && askedName && userMessageCount === 3) {
-      const name = input.trim();
-      localStorage.setItem('userName', name);
-      setUserName(name);
-      const confirmMessage = (confirmNameMessages[personalityKey] || defaultConfirmNameMessage)(name);
-      setMessages([
-        ...newMessages,
-        { role: 'assistant', content: confirmMessage }
-      ]);
-      setIsTyping(false);
-      return;
-    }
+   // Save the name if just asked
+if (!userName && askedName && userMessageCount === 3) {
+  const cleanedName = formatName(extractName(input));
+  localStorage.setItem('userName', cleanedName);
+  setUserName(cleanedName);
+  const confirmMessage = (confirmNameMessages[personalityKey] || defaultConfirmNameMessage)(cleanedName);
+  setMessages([
+    ...newMessages,
+    { role: 'assistant', content: confirmMessage }
+  ]);
+  setIsTyping(false);
+  return;
+}
 
     if (!isPaidUser && newMessages.filter(msg => msg.role === 'user').length >= 30) {
       setLimitReached(true);
